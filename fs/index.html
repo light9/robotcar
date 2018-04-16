@@ -1,0 +1,86 @@
+<html>
+<head>
+  <title>Robot Car</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> 
+  <meta name="author" content="Paolo Manna" /> 
+  <style type="text/css">
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0px;
+    }
+    body {
+      background-color: transparent;
+      font-family: Arial, Verdana, Sans-Serif;
+    }
+    h2 {
+      margin-top: -8px;
+      margin-left: -8px;
+      margin-right: -8px;
+      padding: 8px;
+      background-color: darkgray;
+    }
+    .tableItem {
+      margin: 8px;
+      padding: 8px;
+      background-color: lightgray;
+    }
+    .titleItem {
+      margin: 8px;
+      padding: 8px;
+      color: white;
+      background-color: #2980b9;
+    }
+    .btn {
+      background: #3498db;
+      background-image: linear-gradient(to bottom, #3498db, #2980b9);
+      border-radius: 8px;
+      box-shadow: 0px 1px 3px #666666;
+      font-family: Arial;
+      color: #ffffff;
+      font-size: 14px;
+      padding: 6px 24px 6px 24px;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: #3cb0fd;
+      background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+      text-decoration: none;
+    }
+  </style> 
+  <script src="browser_rpc_service.js"></script>
+</head>
+<body onLoad='startup();'>
+  <div class="titleItem">
+    <h1 align="center">Welcome to Robot Car</h1>
+    <h4 align="center" id="hostname"> </h4>
+  </div>
+  <div id='Motor' class="tableItem">
+    <h2>Robot Move</h2>
+    <table><tbody>
+      <tr>
+        <td><strong>&nbsp;</strong></td>
+        <td align="center" style="padding-left: 12px;"><a class="btn" onmousedown="motorForward(60)" onmouseup="motorStop()">Forward</a></td>
+        <td><strong>&nbsp;</strong></td>
+      </tr>
+      <tr>
+        <td align="center" style="padding-left: 12px;"><a class="btn" onmousedown="motorLeft(60)" onmouseup="motorStop()">Left</a></td>
+        <td><strong>&nbsp;</strong></td>
+        <td align="center" style="padding-left: 12px;"><a class="btn" onmousedown="motorRight(60)" onmouseup="motorStop()">Right</a></td>
+      </tr>
+      <tr>
+        <td><strong>&nbsp;</strong></td>
+        <td align="center" style="padding-left: 12px;"><a class="btn" onmousedown="motorBackward(60)" onmouseup="motorStop()">Back</a></td>
+        <td><strong>&nbsp;</strong></td>
+      </tr>
+    </tbody></table>
+  </div>
+  <p align="center">
+    <a class="btn" onclick="rebootDevice()">Reboot</a>
+  </p>
+  <p align="center">
+    <img src="CoderDojo.svg" alt="https://upload.wikimedia.org/wikipedia/en/d/d2/CoderDojo_Original_Roundel_with_Long_Form_Logotype.svg"/>
+  </p>
+</body>
+</html>
