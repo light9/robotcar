@@ -143,10 +143,10 @@ let D1Motor = {
       }
     };
     
-    GPIO.set_button_handler(pin, GPIO.PULL_UP, GPIO.INT_EDGE_ANY, 10, function(pin,handle) {
+    GPIO.set_mode(pin, GPIO.MODE_INPUT);
+    GPIO.set_int_handler(pin, GPIO.INT_EDGE_ANY, function(pin,handle) {
       D1Motor.incrementCounter(handle);
     }, handle);
-    
     GPIO.enable_int(pin);
   },
   

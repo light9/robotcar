@@ -1,4 +1,4 @@
-# Driving and off-the-shelf car robot
+# Driving an off-the-shelf car robot
 
 ## Overview
 
