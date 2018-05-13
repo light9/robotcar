@@ -6,54 +6,40 @@ load('api_rpc.js');
 load('api_pwm.js');
 load('api_timer.js');
 load('queue.js');
-load('drv_motor.js');
-//load('d1motor.js');
+load('drv_drive.js');
 
 let platform = Cfg.get('device.platform');
 
 let queue = Queue;
 queue.create();
 
-let MotorDriver = DRVMotor;
+let MotorDriver = DRVDrive;
 let motorAddress = 12;
-//let MotorDriver = D1Motor;
-//let motorAddress = 0x30;
 
-let motorRight = MotorDriver.create(motorAddress, MotorDriver.MOTOR_A, 1000);
-let motorLeft = MotorDriver.create(motorAddress, MotorDriver.MOTOR_B, 1000);
+let motors = MotorDriver.create(motorAddress, 1000);
 
 let LEFT_PHOTO = 16;
 let RIGHT_PHOTO = 17;
-let degreesPerStep = 5.0;
 
-MotorDriver.enableCounter(motorRight,RIGHT_PHOTO);
-MotorDriver.enableCounter(motorLeft,LEFT_PHOTO);
+MotorDriver.enableCounter(motors,LEFT_PHOTO);
 
 function interpretCommand(command) {
   if(command.type === "move") {
-    MotorDriver.move(motorLeft,command.args.dir1,command.args.speed1);
-    MotorDriver.move(motorRight,command.args.dir2,command.args.speed2)
+    MotorDriver.move(motors,command.args.dir,command.args.speed);
   }
   
   if (command.type === "moveto") {
-    MotorDriver.moveTo(motorLeft,command.args.dir1,command.args.speed1,command.args.count1);
-    MotorDriver.moveTo(motorRight,command.args.dir2,command.args.speed2,command.args.count2);
+    MotorDriver.moveTo(motors,command.args.dir,command.args.speed,command.args.count);
   }
   
   if (command.type === "rotate") {
-    let args = command.args;
-    let dir1 = (args.angle >= 0 ? 2 : 1);
-    let dir2 = (args.angle >= 0 ? 1 : 2);
-    let steps = Math.abs(args.angle / degreesPerStep);
-    
-    MotorDriver.moveTo(motorLeft,dir1,args.speed, steps);
-    MotorDriver.moveTo(motorRight,dir2,args.speed, steps);
+    MotorDriver.rotateBy(motors,command.args.angle,command.args.speed);
   }
 }
 
 // Call every 200 msecs, check queue and send command if not empty and motor stopped
 Timer.set(200, Timer.REPEAT, function(motors) {
-  if (!motorRight.isMoving && !motorLeft.isMoving) {
+  if (!motors.isMoving) {
     if (!queue.isEmpty()) {
       interpretCommand(queue.first());
     
@@ -64,51 +50,40 @@ Timer.set(200, Timer.REPEAT, function(motors) {
 
 RPC.addHandler('Robot.Move', function(args) {
   if (typeof(args) === 'object' &&
-    typeof(args.speed1) === 'number' && typeof(args.speed2) === 'number' &&
-    typeof(args.dir1) === 'number'&& typeof(args.dir2) === 'number') {
+    typeof(args.speed) === 'number' && typeof(args.dir) === 'number') {
     
     queue.add({"type":"move","args":args});
     
     /*
     return {
-      success: MotorDriver.move(motorLeft,args.dir1,args.speed1) &&
-        MotorDriver.move(motorRight,args.dir2,args.speed2)
+      success: MotorDriver.move(motors,args.dir,args.speed)
     };
     */
   } else {
-    return {error: -1, message: 'Bad request. Expected: {"dir1": 0-3,"speed1": 0-100,"dir2": 0-3,"speed2": 0-100}'};
+    return {error: -1, message: 'Bad request. Expected: {"dir": 0-3,"speed": 0-100}'};
   }
 });
 
 RPC.addHandler('Robot.MoveTo', function(args) {
   if (typeof(args) === 'object' &&
-    typeof(args.speed1) === 'number' && typeof(args.speed2) === 'number' &&
-    typeof(args.dir1) === 'number'&& typeof(args.dir2) === 'number' &&
-    typeof(args.count1) === 'number'&& typeof(args.count2) === 'number') {
+    typeof(args.speed) === 'number' && typeof(args.dir) === 'number' && typeof(args.count) === 'number') {
     
     queue.add({"type":"moveto","args":args});
     /*
-    return {success: MotorDriver.moveTo(motorLeft,args.dir1,args.speed1,args.count1) &&
-          MotorDriver.moveTo(motorRight,args.dir2,args.speed2,args.count2)
-    };
+    return {success: MotorDriver.moveTo(motors,args.dir,args.speed,args.count)};
     */
   } else {
-    return {error: -1, message: 'Bad request. Expected: {"dir1": 0-3,"speed1": 0-100,"dir2": 0-3,"speed2": 0-100}'};
+    return {error: -1, message: 'Bad request. Expected: {"dir": 0-3,"speed": 0-100,"count": 1-N'};
   }
 });
 
-RPC.addHandler('Robot.Rotate', function(args) {
+RPC.addHandler('Robot.RotateBy', function(args) {
   if (typeof(args) === 'object' &&
     typeof(args.speed) === 'number' && typeof(args.angle) === 'number') {
     
     queue.add({"type":"rotate","args":args});
     /*
-    let dir1 = (args.angle >= 0 ? 2 : 1);
-    let dir2 = (args.angle >= 0 ? 1 : 2);
-    let steps = Math.abs(args.angle / degreesPerStep);
-    
-    return {success: MotorDriver.moveTo(motorLeft,dir1,args.speed, steps) &&
-          MotorDriver.moveTo(motorRight,dir2,args.speed, steps)};
+    return {success: MotorDriver.rotateBy(motors,args.angle,args.speed)};
     */
   } else {
     return {error: -1, message: 'Bad request. Expected: {"dir1": 0-3,"speed1": 0-100,"dir2": 0-3,"speed2": 0-100}'};
@@ -116,13 +91,12 @@ RPC.addHandler('Robot.Rotate', function(args) {
 });
 
 RPC.addHandler('Robot.Stop', function(args) {
-  motorLeft.speed = 0;
-  motorRight.speed = 0;
+  motors.speed = 0;
   
   while (!queue.isEmpty()) {
     queue.remove();
   }
-  return {success: MotorDriver.stop(motorLeft) && MotorDriver.stop(motorRight)};
+  return {success: MotorDriver.stop(motors)};
 });
 
 RPC.addHandler('Robot.isMoving', function(args) {
@@ -140,8 +114,7 @@ RPC.addHandler('Robot.Path', function(args) {
     if (aCommand.type === "moveto") {
       queue.add({
        "type": aCommand.type,"args":{
-         "dir1":dir,"speed1":speed,"count1":aCommand.count,
-         "dir2":dir,"speed2":speed,"count2":aCommand.count
+         "dir":dir,"speed":speed,"count":aCommand.count
         }
       });
     } else if (aCommand.type === "rotate") {
@@ -158,13 +131,13 @@ RPC.addHandler('Robot.Path', function(args) {
 
 RPC.addHandler('Robot.Test', function(args) {
   // Test by doing a square
-  queue.add({"type":"moveto","args":{"dir1":1,"speed1":70,"count1":100,"dir2":1,"speed2":70,"count2":100}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
   queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
-  queue.add({"type":"moveto","args":{"dir1":1,"speed1":70,"count1":100,"dir2":1,"speed2":70,"count2":100}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
   queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
-  queue.add({"type":"moveto","args":{"dir1":1,"speed1":70,"count1":100,"dir2":1,"speed2":70,"count2":100}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
   queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
-  queue.add({"type":"moveto","args":{"dir1":1,"speed1":70,"count1":100,"dir2":1,"speed2":70,"count2":100}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
   queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
   
   return { success: true };
