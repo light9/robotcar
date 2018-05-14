@@ -6,6 +6,44 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" /> 
 		<meta name="author" content="Tom, Elsye & Charlie" /> 
 		<script>
+			var canvas = null;
+			var context = null;
+			var xyRange = 0;
+			var xyStep = 5;
+			
+			function setupCanvas() {
+				canvas = document.getElementById('myCanvas');
+				context = canvas.getContext('2d');
+				
+				var h=parseInt(canvas.height);
+				var w=parseInt(canvas.width);	
+				
+				xyRange = w/2;// eg 600/2 gives range of -300 to + 300
+		
+				context.fillStyle = "#9ea7b8";
+				context.fillRect(0,0,w,h);
+				context.translate(h/2,w/2);
+			}
+			
+			function clearCanvas() {
+				var h = canvas.height;
+				var w = canvas.width;	
+				
+				context.fillStyle = "#9ea7b8";
+				context.fillRect(-w / 2, -h / 2, w, h);
+			}
+			
+			function printDot(thix,thiy,tcolor,tsize) {
+				var yFactor = 500;   	
+				var myx = thix;
+				var myy = -1*thiy/yFactor;
+		
+				context.beginPath();
+				context.rect(myx, myy, tsize, tsize);
+				context.fillStyle = tcolor;
+				context.fill();
+			}
+    		
 			var a = 0;
 			var b = 0;
 			var c = 0;
@@ -15,6 +53,8 @@
 			}
 		
 			function initialise() {
+				clearCanvas();
+				
 				a = document.getElementById("a").value;
 				b = document.getElementById("b").value;
 				c = document.getElementById("c").value;
@@ -64,7 +104,7 @@
 		
 			function generate(){
 				var output = "";
-				var range = 10;
+				// var range = 10;
 				var dist = 0;
 				var angle = 0;
 				var prevX = 0;
@@ -78,24 +118,31 @@
 				
 				initialise();
 				
+				// TODO: Position the car
 				
-				prevX = -range;
-				prevY = getQuadratic(prevX);
+				// prevX = -range;
+				// prevY = getQuadratic(prevX);
 			
 				if (fullCheck()){
-					for(x = -range+1; x <= range; x++) {
+					for(x = -xyRange+1; x <= xyRange; x += xyStep) {
 						y = getQuadratic(x);
 						
+						/*
 						dist = getDistance(x,y,prevX,prevY);
 						prevAngle = getAngle(x,y,prevX,prevY);
 						moveAngle = orientation - prevAngle;
 
 						moveRobot(dist,moveAngle);
+						*/
+						printDot(x,y,"red",5);
+						
 					//	console.log("prevX,prevY = "+prevX+","+prevY+" x,y = "+x+","+y+" dist = "+dist+" angle = "+angle);
 						
-						prevX = x;
-						prevY = y;
+// 						prevX = x;
+// 						prevY = y;
 					}
+					
+					// TODO: Take car back to zero again
 				} else {
 					alert("Invalid input/s, please use integers and stay within the ranges");
 				}
@@ -166,11 +213,12 @@
 
 				return !isNaN(value) && (x | 0) === x;
 			}
-
 		</script>
 	</head>
 	<!-- body onload="generate();" -->
-	<body>
+	<body onload="setupCanvas();">
+ 		<p><canvas id="myCanvas" width="400" height="400"></canvas></p>
+ 		
 		A<input type="text" value="3" id="a">
 		<br><br>
 		B<input type="text" value="4" id="b">
@@ -188,6 +236,6 @@
 		CMax<input type="text" value="500" id="cmax">
 		<br><br>
 		CMin<input type="text" value="-500" id="cmin">
-		<button onclick="generate()">generate</button>
+		<button onclick="generate()">Generate</button>
 	</body>
 </html>
