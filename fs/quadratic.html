@@ -8,8 +8,34 @@
 		<script>
 			var canvas = null;
 			var context = null;
+			var xyFactor = 20;   	
 			var xyRange = 0;
-			var xyStep = 5;
+			var xyStep = 10;
+			
+			function clearCanvas() {
+				var h = canvas.height;
+				var w = canvas.width;	
+				var halfH = h / 2;
+				var halfW = w / 2;
+				
+				context.fillStyle = "#9ea7b8";
+				context.clearRect(-halfW, -halfH, w, h);
+				
+				context.lineWidth = 1;
+				
+				context.beginPath();
+				context.moveTo(-halfW,0);
+				context.lineTo(halfW,0);
+				context.stroke();
+
+				context.beginPath();
+				context.moveTo(0,-halfH);
+				context.lineTo(0,halfH);
+				context.stroke();
+
+				context.lineWidth = 7;
+				context.strokeRect(-halfW, -halfH, w, h);
+			}
 			
 			function setupCanvas() {
 				canvas = document.getElementById('myCanvas');
@@ -23,20 +49,13 @@
 				context.fillStyle = "#9ea7b8";
 				context.fillRect(0,0,w,h);
 				context.translate(h/2,w/2);
-			}
-			
-			function clearCanvas() {
-				var h = canvas.height;
-				var w = canvas.width;	
 				
-				context.fillStyle = "#9ea7b8";
-				context.fillRect(-w / 2, -h / 2, w, h);
+				clearCanvas();
 			}
 			
 			function printDot(thix,thiy,tcolor,tsize) {
-				var yFactor = 500;   	
 				var myx = thix;
-				var myy = -1*thiy/yFactor;
+				var myy = -1*thiy;
 		
 				context.beginPath();
 				context.rect(myx, myy, tsize, tsize);
@@ -85,7 +104,7 @@
 			}
 		
 			function getQuadratic(x){
-		 		var y = a * x * x + b * x + c;
+		 		var y = (a * x * x) + (b * x) + (c * 1);
 		
 				//alert("getQuadratic x = "+x + ", y = "+ y);
 			
@@ -125,7 +144,7 @@
 			
 				if (fullCheck()){
 					for(x = -xyRange+1; x <= xyRange; x += xyStep) {
-						y = getQuadratic(x);
+						y = getQuadratic(x / xyFactor);
 						
 						/*
 						dist = getDistance(x,y,prevX,prevY);
@@ -219,6 +238,9 @@
 	<body onload="setupCanvas();">
  		<p><canvas id="myCanvas" width="400" height="400"></canvas></p>
  		
+		<button onclick="clearCanvas()">Clear Canvas</button>
+		<button onclick="generate()">Generate</button>
+		<br><br>
 		A<input type="text" value="3" id="a">
 		<br><br>
 		B<input type="text" value="4" id="b">
@@ -236,6 +258,5 @@
 		CMax<input type="text" value="500" id="cmax">
 		<br><br>
 		CMin<input type="text" value="-500" id="cmin">
-		<button onclick="generate()">Generate</button>
 	</body>
 </html>
