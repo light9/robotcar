@@ -9,7 +9,7 @@ let DRVDrive = {
   CW: 2,
   STOP: 3,
   
-  DEGREES_PER_STEP: 5.0,
+  DEGREES_PER_STEP: 7.0,
   
   // TODO: Standby is not enabled at the moment
   
@@ -38,6 +38,10 @@ let DRVDrive = {
   // The handle passed in should be the same returned by DRVDrive.create()
   // Return value: true if successful.
   move: function(handle, dir, speed) {
+    if (handle.address === undefined) {
+      return;
+    }
+    
     let pwm = speed / 100.0;
     
     if (pwm < 0) {
@@ -45,24 +49,19 @@ let DRVDrive = {
     } else if (pwm > 1.0) {
       pwm = 1;
     }
-    if (handle.address === undefined ) {
-      return;
-    }
-    
-    // print("PWM:",pwm * 100.0);
     
     handle.isMoving = (dir === this.CCW) || (dir === this.CW);
 
     if (dir === this.CCW) {
       PWM.set(handle.address, handle.frequency, pwm);
       PWM.set(handle.address + 1, handle.frequency, 0);
-      PWM.set(handle.address + 2, handle.frequency, pwm);
+      PWM.set(handle.address + 2, handle.frequency, pwm + handle.speedDiff);
       PWM.set(handle.address + 3, handle.frequency, 0);
     } else if (dir === this.CW) {
       PWM.set(handle.address, handle.frequency, 0);
       PWM.set(handle.address + 1, handle.frequency, pwm);
       PWM.set(handle.address + 2, handle.frequency, 0);
-      PWM.set(handle.address + 3, handle.frequency, pwm);
+      PWM.set(handle.address + 3, handle.frequency, pwm + handle.speedDiff);
     } else {
       PWM.set(handle.address, handle.frequency, 0);
       PWM.set(handle.address + 1, handle.frequency, 0);
@@ -78,16 +77,16 @@ let DRVDrive = {
   // The handle passed in should be the same returned by DRVDrive.create()
   // Return value: true if successful.
   rotate: function(handle, dir, speed) {
+    if ((handle.address === undefined) || (dir === 0) || (speed === 0)) {
+      return;
+    }
+    
     let pwm = speed / 100.0;
     
     if (pwm < 0) {
       pwm = 0;
     } else if (pwm > 1.0) {
       pwm = 1;
-    }
-    
-    if ((handle.address === undefined) || (dir === 0) || (pwm === 0.0)) {
-      return;
     }
     
     handle.isMoving = (dir === this.CCW) || (dir === this.CW);
@@ -97,12 +96,12 @@ let DRVDrive = {
       PWM.set(handle.address, handle.frequency, pwm);
       PWM.set(handle.address + 1, handle.frequency, 0);
       PWM.set(handle.address + 2, handle.frequency, 0);
-      PWM.set(handle.address + 3, handle.frequency, pwm);
+      PWM.set(handle.address + 3, handle.frequency, pwm + handle.speedDiff);
     } else {
       // Counter-clockwise
       PWM.set(handle.address, handle.frequency, 0);
       PWM.set(handle.address + 1, handle.frequency, pwm);
-      PWM.set(handle.address + 2, handle.frequency, pwm);
+      PWM.set(handle.address + 2, handle.frequency, pwm + handle.speedDiff);
       PWM.set(handle.address + 3, handle.frequency, 0);
     }
     
@@ -115,6 +114,7 @@ let DRVDrive = {
   stop: function(handle) {
     // print("Stopping motors");
     handle.targetCount = 0;
+    handle.speedDiff = 0.0;
     handle.countA  = 0;
     handle.countB  = 0;
     
@@ -129,6 +129,17 @@ let DRVDrive = {
       handle.countA  += 1;
     } else if (sensor === this.MOTOR_B) {
       handle.countB  += 1;
+    }
+    
+    // Calculate speed difference to compensate, every 5 steps
+    if (((handle.countA % 5) === 4) && (Math.abs(handle.speedDiff) < 0.3)) {
+      if (handle.countB > handle.countA + 1) {
+        // Slow down B
+        handle.speedDiff -= 0.05;
+      } else if (handle.countB < handle.countA - 1) {
+        // Speed up B
+        handle.speedDiff += 0.05;
+      }
     }
     
     if (handle.counterCallback === null) {
@@ -159,11 +170,12 @@ let DRVDrive = {
     handle.pin = pin;
     handle.countA = 0;
     handle.countB = 0;
+    handle.speedDiff = 0.0;
     handle.targetCount = 0;
     handle.stopCallback = null;
     
     handle.counterCallback = function(handle) {
-      print("Opto step on pin", handle.pin,"count A",handle.countA,"count B",handle.countB,"target",handle.targetCount);
+      print("Opto step on pin", handle.pin,"count A",handle.countA,"count B",handle.countB,"speed",handle.speedDiff,"target",handle.targetCount);
       
       if (handle.targetCount === 0) { return; }
       
@@ -208,6 +220,7 @@ let DRVDrive = {
     
     handle.countA = 0;
     handle.countB = 0;
+    handle.speedDiff = 0.0;
     handle.targetCount = count;
     
     if ((callback !== null) && (callback !== undefined)) {
@@ -242,6 +255,7 @@ let DRVDrive = {
     
     handle.countA = 0;
     handle.countB = 0;
+    handle.speedDiff = 0.0;
     handle.targetCount = Math.floor(absRotation / this.DEGREES_PER_STEP);
     
     // Updates rotation with the remainder
