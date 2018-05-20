@@ -24,7 +24,9 @@ let DRVDrive = {
     result.frequency = freq;
     result.isMoving = false;
     result.rotation = 0.0;
-    
+    result.dirA = 0;
+    result.dirB = 0;
+   
     PWM.set(initialPin, freq, 0);
     PWM.set(initialPin + 1, freq, 0);
     PWM.set(initialPin + 2, freq, 0);
@@ -51,7 +53,7 @@ let DRVDrive = {
     }
     
     handle.isMoving = (dir === this.CCW) || (dir === this.CW);
-
+    
     if (dir === this.CCW) {
       PWM.set(handle.address, handle.frequency, pwm);
       PWM.set(handle.address + 1, handle.frequency, 0);
@@ -63,11 +65,32 @@ let DRVDrive = {
       PWM.set(handle.address + 2, handle.frequency, 0);
       PWM.set(handle.address + 3, handle.frequency, pwm + handle.speedDiff);
     } else {
+      if (dir === this.SHORT_BRAKE) {
+        // Briefly invert motors to counter inertia
+        if (handle.dirA === this.CCW) {
+          PWM.set(handle.address, handle.frequency, 0);
+          PWM.set(handle.address + 1, handle.frequency, 0.25);
+        } else if (handle.dirA === this.CW) {
+          PWM.set(handle.address, handle.frequency, 0.25);
+          PWM.set(handle.address + 1, handle.frequency, 0);
+        }
+        if (handle.dirB === this.CCW) {
+          PWM.set(handle.address + 2, handle.frequency, 0);
+          PWM.set(handle.address + 3, handle.frequency, 0.25);
+        } else if (handle.dirB === this.CW) {
+          PWM.set(handle.address + 2, handle.frequency, 0.25);
+          PWM.set(handle.address + 3, handle.frequency, 0);
+        }
+        Sys.usleep(10000);
+      }
       PWM.set(handle.address, handle.frequency, 0);
       PWM.set(handle.address + 1, handle.frequency, 0);
       PWM.set(handle.address + 2, handle.frequency, 0);
       PWM.set(handle.address + 3, handle.frequency, 0);
     }
+    
+    handle.dirA = dir;
+    handle.dirB = dir;
     
     return true;
   },
@@ -89,8 +112,8 @@ let DRVDrive = {
       pwm = 1;
     }
     
-    handle.isMoving = (dir === this.CCW) || (dir === this.CW);
-
+    handle.isMoving = (dir === -1) || (dir === 1);
+    
     if (dir < 0) {
       // Clockwise
       PWM.set(handle.address, handle.frequency, pwm);
@@ -104,6 +127,9 @@ let DRVDrive = {
       PWM.set(handle.address + 2, handle.frequency, pwm + handle.speedDiff);
       PWM.set(handle.address + 3, handle.frequency, 0);
     }
+    
+    handle.dirA = dir < 0 ? this.CCW : this.CW;
+    handle.dirB = dir < 0 ? this.CW : this.CCW;
     
     return true;
   },

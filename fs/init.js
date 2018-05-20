@@ -16,7 +16,7 @@ queue.create();
 let MotorDriver = DRVDrive;
 let motorAddress = 12;
 
-let motors = MotorDriver.create(motorAddress, 1000);
+let motors = MotorDriver.create(motorAddress, 100);
 
 let LEFT_PHOTO = 16;
 let RIGHT_PHOTO = 17;
@@ -37,8 +37,8 @@ function interpretCommand(command) {
   }
 }
 
-// Call every 200 msecs, check queue and send command if not empty and motor stopped
-Timer.set(200, Timer.REPEAT, function() {
+// Call every 500 msecs, check queue and send command if not empty and motor stopped
+Timer.set(500, Timer.REPEAT, function() {
   if (!motors.isMoving) {
     if (!queue.isEmpty()) {
       interpretCommand(queue.first());
@@ -100,7 +100,7 @@ RPC.addHandler('Robot.Stop', function(args) {
 });
 
 RPC.addHandler('Robot.isMoving', function(args) {
-  return { result: motorLeft.isMoving && motorRight.isMoving };
+  return { result: motors.isMoving };
 });
 
 RPC.addHandler('Robot.Path', function(args) {
@@ -131,14 +131,14 @@ RPC.addHandler('Robot.Path', function(args) {
 
 RPC.addHandler('Robot.Test', function(args) {
   // Test by doing a square
-  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
-  queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
-  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
-  queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
-  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
-  queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
-  queue.add({"type":"moveto","args":{"dir":1,"speed":70,"count":100}});
-  queue.add({"type":"rotate","args":{"speed":70,"angle":90}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":60,"count":50}});
+  queue.add({"type":"rotate","args":{"speed":60,"angle":90}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":60,"count":50}});
+  queue.add({"type":"rotate","args":{"speed":60,"angle":90}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":60,"count":50}});
+  queue.add({"type":"rotate","args":{"speed":60,"angle":90}});
+  queue.add({"type":"moveto","args":{"dir":1,"speed":60,"count":50}});
+  queue.add({"type":"rotate","args":{"speed":60,"angle":90}});
   
   return { success: true };
 });
