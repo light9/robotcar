@@ -45,7 +45,7 @@ function clearCanvas(canvas,ctx) {
 	
 	prevMouseX = -1, prevMouseY = -1, prevAngle = 0;
 	
-	robotScale = document.getElementById("scale").value;
+//	robotScale = document.getElementById("scale").value;
 	robotPath = [];
 }
 
@@ -118,6 +118,7 @@ function moveRobot(dist,angle){
 	if (dist > 0) {
 		robotPath.push({type:"moveto", count: Math.round(dist / robotScale)});
 	}
+}
 
 function sendPathToRobot() {
 	console.log(robotPath);
