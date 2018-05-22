@@ -29,9 +29,12 @@ function startup() {
 
       var mac_id = (response.device.id.split("_"))[1];
       var dns_host = response.dns_sd.host_name;
-
+      var hostLabel = document.getElementById("hostname");
+      
       host = dns_host.replace('??????', mac_id) + '.local';
-      document.getElementById("hostname").innerHTML = host;
+      if (hostLabel !== null) {
+        hostLabel.innerHTML = host;
+      }
     }
   });
 }

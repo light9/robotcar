@@ -69,16 +69,16 @@ let DRVDrive = {
         // Briefly invert motors to counter inertia
         if (handle.dirA === this.CCW) {
           PWM.set(handle.address, handle.frequency, 0);
-          PWM.set(handle.address + 1, handle.frequency, 0.25);
+          PWM.set(handle.address + 1, handle.frequency, 0.5);
         } else if (handle.dirA === this.CW) {
-          PWM.set(handle.address, handle.frequency, 0.25);
+          PWM.set(handle.address, handle.frequency, 0.5);
           PWM.set(handle.address + 1, handle.frequency, 0);
         }
         if (handle.dirB === this.CCW) {
           PWM.set(handle.address + 2, handle.frequency, 0);
-          PWM.set(handle.address + 3, handle.frequency, 0.25);
+          PWM.set(handle.address + 3, handle.frequency, 0.5);
         } else if (handle.dirB === this.CW) {
-          PWM.set(handle.address + 2, handle.frequency, 0.25);
+          PWM.set(handle.address + 2, handle.frequency, 0.5);
           PWM.set(handle.address + 3, handle.frequency, 0);
         }
         Sys.usleep(10000);

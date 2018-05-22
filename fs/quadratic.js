@@ -184,9 +184,9 @@ function pen(upOrDown) {
 }
 
 function moveRobot(dist,angle){
-	robotPath.push({type:"rotate", angle: angle});
+	robotPath.push({type:"rotate", angle: Math.round(angle)});
 	if (dist > 0) {
-		robotPath.push({type:"moveto", count: dist / robotScale});
+		robotPath.push({type:"moveto", count: Math.round(dist / robotScale)});
 	}
 }
 

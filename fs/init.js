@@ -46,8 +46,8 @@ function interpretCommand(command) {
   }
 }
 
-// Call every 500 msecs, check queue and send command if not empty and motor stopped
-Timer.set(500, Timer.REPEAT, function() {
+// Call every 250 msecs, check queue and send command if not empty and motor stopped
+Timer.set(250, Timer.REPEAT, function() {
   if (!motors.isMoving) {
     if (!queue.isEmpty()) {
       interpretCommand(queue.first());
