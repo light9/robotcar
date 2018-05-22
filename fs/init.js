@@ -35,6 +35,15 @@ function interpretCommand(command) {
   if (command.type === "rotate") {
     MotorDriver.rotateBy(motors,command.args.angle,command.args.speed);
   }
+  
+  if (command.type === "pen") {
+      let frequency = 50;
+      let dutyMin = 0.025;
+      let dutyRange = 0.09;
+      let angle = command.args.down ? 100 : 10;
+      
+      PWM.set(command.args.pin,frequency,dutyMin + dutyRange * (angle / 180.0));
+  }
 }
 
 // Call every 500 msecs, check queue and send command if not empty and motor stopped
@@ -123,6 +132,12 @@ RPC.addHandler('Robot.Path', function(args) {
           "speed":speed,"angle":aCommand.angle
         }
       });
+    } else if (aCommand.type === "pen") {
+      queue.add({
+        "type": aCommand.type,"args":{
+          "pin": aCommand.pin, "down":aCommand.down
+        }
+      });
     }
   }
   
@@ -145,12 +160,12 @@ RPC.addHandler('Robot.Test', function(args) {
 
 // Servo RPC call
 RPC.addHandler('Servo.Set', function(args) {
-  let frequency = 50;
-  let dutyMin = 0.025;
-  let dutyRange = 0.09;
-  
   if (typeof(args) === 'object' && typeof(args.pin) === 'number' && typeof(args.angle) === 'number') {
     if (args.angle >= 0 && args.angle <= 180) {
+      let frequency = 50;
+      let dutyMin = 0.025;
+      let dutyRange = 0.09;
+  
       return {success: PWM.set(args.pin,frequency,dutyMin + dutyRange * (args.angle / 180.0))};
     }
   } else {

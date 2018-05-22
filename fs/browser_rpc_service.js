@@ -1,4 +1,4 @@
-// Mongoose OS Caterpillar JavaScript for the browser
+// Mongoose OS RobotCar JavaScript for the browser
 
 var platform = '';
 var host = '';
@@ -36,35 +36,14 @@ function startup() {
   });
 }
 
-// Read a value from ADC
-function adcReadValue() {
-  var pin = parseInt(document.getElementById("ADC.pin").value);
-
-  callRPCService('ADC.Enable', { pin: pin }, function (response) {
-    if (response == null) {
-      return;
-    }
-    callRPCService('ADC.Read', { pin: pin }, function (response) {
-      if (response != null) {
-        if (response.error !== undefined) {
-          alert(response.message);
-        } else {
-          document.getElementById("ADC.value").value = response.value;
-        }
-      }
-    });
-  });
-}
-
 // Move the motor
-let speedOffset = 0;
 
 function motorForward(speed) {
   if (speed < 40) {
     speed = 40;
   }
-
-  callRPCService('Robot.Move', { dir1: 2, dir2: 2, speed1: speed + speedOffset, speed2: speed }, function (response) {
+  
+  callRPCService('Robot.Move', { dir: 1, speed: speed }, function (response) {
     if (response != null && response.error !== undefined) {
       alert(response.message);
     }
@@ -76,31 +55,44 @@ function motorBackward(speed) {
     speed = 40;
   }
 
-  callRPCService('Robot.Move', { dir1: 1, dir2: 1, speed1: speed + speedOffset, speed2: speed }, function (response) {
+  callRPCService('Robot.Move', { dir: 2, speed: speed }, function (response) {
     if (response != null && response.error !== undefined) {
       alert(response.message);
     }
   });
 }
 
-function motorLeft(speed) {
+function motorMoveForwardBy(speed, steps) {
   if (speed < 40) {
     speed = 40;
   }
 
-  callRPCService('Robot.Move', { dir1: 2, dir2: 1, speed1: speed + speedOffset, speed2: speed }, function (response) {
+  callRPCService('Robot.MoveTo', { speed: speed, dir: 1, count: steps }, function (response) {
     if (response != null && response.error !== undefined) {
       alert(response.message);
     }
   });
 }
 
-function motorRight(speed) {
+function motorRotateBy(speed, angle) {
   if (speed < 40) {
     speed = 40;
   }
 
-  callRPCService('Robot.Move', { dir1: 1, dir2: 2, speed1: speed + speedOffset, speed2: speed }, function (response) {
+  callRPCService('Robot.RotateBy', { speed: speed, angle: angle }, function (response) {
+    if (response != null && response.error !== undefined) {
+      alert(response.message);
+    }
+  });
+}
+
+
+function motorFollowPath(dir, speed, commands) {
+  if (speed < 40) {
+    speed = 40;
+  }
+  
+  callRPCService('Robot.Path', { speed: speed, dir: dir, path: commands }, function (response) {
     if (response != null && response.error !== undefined) {
       alert(response.message);
     }
@@ -109,7 +101,15 @@ function motorRight(speed) {
 
 // Full stop to motor
 function motorStop() {
-  callRPCService('Robot.Move', { dir1: 3, dir2: 3, speed1: 10, speed2: 10 }, function (response) {
+  callRPCService('Robot.Stop', {}, function (response) {
+    if (response != null && response.error !== undefined) {
+      alert(response.message);
+    }
+  });
+}
+
+function servoSet(pin, angle) {
+  callRPCService('Servo.Set', {pin: pin, angle: angle}, function (response) {
     if (response != null && response.error !== undefined) {
       alert(response.message);
     }

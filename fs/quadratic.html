@@ -5,9 +5,10 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" /> 
 		<meta name="author" content="Tom, Elsye & Charlie" /> 
+		<script src="browser_rpc_service.js"></script>
 		<script src="quadratic.js"></script>
 	</head>
-	<body onload="setupCanvas();">
+	<body onload="setupCanvas(); /* startup() */">
  		<p><canvas id="myCanvas" width="400" height="400"></canvas></p>
  		
 		<button onclick="clearCanvas()">Clear Canvas</button>
@@ -30,5 +31,7 @@
 		CMax<input type="text" value="500" id="cmax">
 		<br><br>
 		CMin<input type="text" value="-500" id="cmin">
+		<br><br>
+		Scale<input type="text" value="2" id="scale">
 	</body>
 </html>

@@ -4,6 +4,10 @@ var xyFactor = 20;
 var xyRange = 0;
 var xyStep = 10;
 
+var robotPenPin = 4;
+var robotPath = [];
+var robotScale = 1.0;
+
 function clearCanvas() {
 	var h = canvas.height;
 	var w = canvas.width;	
@@ -68,6 +72,9 @@ function initialise() {
 	a = document.getElementById("a").value;
 	b = document.getElementById("b").value;
 	c = document.getElementById("c").value;
+	
+	robotScale = document.getElementById("scale").value;
+	robotPath = [];
 }
 
 function getDistance(x1,y1,x2,y2) {
@@ -102,64 +109,88 @@ function getQuadratic(x){
 	return y;
 }
 
-/*
-function getOrientation(angle1,angle2,orientation,angle){
-	angle1 = angle;
-	angle2 - angle1 = 
-
-	return angle1;
-
-}
-*/ 
-
 function generate(){
 	var output = "";
 //	var range = 10;
 	var dist = 0;
 	var angle = 0;
-	var prevX = 0;
-	var prevY = 0;
+	var prevX = -xyRange+1;
+	var prevY = -xyRange+1;
 	var x = 0;
 	var y = 0;
 	var prevAngle = 0;
 	var moveAngle = 0;
-	var orientation = 0
-	
+	var absoluteAngle = 0;
+	var penUp = false;
 	
 	initialise();
 	
-	// TODO: Position the car to the starting point
+	// Ensure pen is up
+	pen(false);
 	
-	// prevX = -range;
-	// prevY = getQuadratic(prevX);
-
+	// Assume the car is at the starting point
+	
 	if (fullCheck()){
 		for(x = -xyRange+1; x <= xyRange; x += xyStep) {
 			y = getQuadratic(x / xyFactor);
 			
-			/*
+			if (y < -xyRange || y > xyRange) continue;
+			
 			dist = getDistance(x,y,prevX,prevY);
-			prevAngle = getAngle(x,y,prevX,prevY);
-			moveAngle = orientation - prevAngle;
-
+			absoluteAngle = getAngle(x,y,prevX,prevY);
+			moveAngle = absoluteAngle - prevAngle;
+			
 			moveRobot(dist,moveAngle);
-			*/
+			
 			printDot(x,y,"red",5);
 			
-//			console.log("prevX,prevY = "+prevX+","+prevY+" x,y = "+x+","+y+" dist = "+dist+" angle = "+angle);
+			prevAngle = absoluteAngle;
+			prevX = x;
+			prevY = y;
 			
-// 			prevX = x;
-// 			prevY = y;
+			// Arrived at destination, ensure pen is down
+			if (!penUp) {
+				pen(true);
+				penUp = true;
+			}
 		}
 		
-		// TODO: Take car back to zero again
+		// Raise pen again
+		pen(false);
+		
+		// Take car back to zero
+		x = -xyRange+1;
+		y = -xyRange+1;
+		dist = getDistance(x,y,prevX,prevY);
+		absoluteAngle = getAngle(x,y,prevX,prevY);
+		moveAngle = absoluteAngle - prevAngle;
+		
+		moveRobot(dist,moveAngle);
+		
+		// Resets orientation
+		moveRobot(0, -absoluteAngle);
+		
+		sendPathToRobot();
 	} else {
 		alert("Invalid input/s, please use integers and stay within the ranges");
 	}
 }
 
+function pen(upOrDown) {
+	robotPath.push({type:"pen", down: upOrDown, pin: robotPenPin});
+}
+
 function moveRobot(dist,angle){
-	console.log(dist + " , " + angle);
+	robotPath.push({type:"rotate", angle: angle});
+	if (dist > 0) {
+		robotPath.push({type:"moveto", count: dist / robotScale});
+	}
+}
+
+function sendPathToRobot() {
+	console.log(robotPath);
+	
+// 	motorFollowPath(1, 50, robotPath);
 }
 
 function rangeCheck() {
