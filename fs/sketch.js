@@ -1,9 +1,15 @@
+
+var robotPenPin = 4;
+var robotPath = [];
+var robotScale = 1.0;
+
 // Variables for referencing the canvas and 2dcanvas context
 var canvas,ctx;
 
 // Variables to keep track of the mouse position and left-button status 
 var mouseX,mouseY,mouseDown=0;
 var prevMouseX = -1, prevMouseY = -1;
+var prevAngle = 0;
 
 // Draws a dot at a specific position on the supplied canvas name
 // Parameters are: A canvas context, the x position, the y position, the size of the dot
@@ -37,7 +43,10 @@ function drawDot(ctx,x,y,size) {
 function clearCanvas(canvas,ctx) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
-	prevMouseX = -1, prevMouseY = -1;
+	prevMouseX = -1, prevMouseY = -1, prevAngle = 0;
+	
+	robotScale = document.getElementById("scale").value;
+	robotPath = [];
 }
 
 // Keep track of the mouse button being pressed and draw a dot at current location
@@ -77,8 +86,45 @@ function getMousePos(e) {
 		mouseX = e.layerX;
 		mouseY = e.layerY;
 	}
- }
+}
 
+function getDistance(x1,y1,x2,y2) {
+	var dist = 0;
+	
+	dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+	
+	return dist;
+}
+
+function getAngle(x1,y1,x2,y2) {
+	var angle = 0;
+	var xDist = x1 - x2;
+	var yDist = y1 - y2;
+	
+	// NOTE: According to https://www.w3schools.com/jsref/jsref_atan2.asp
+	// Y comes _first_
+	angle = Math.atan2(yDist, xDist);
+	angle *= 180 / Math.PI;
+	
+	return angle;	
+}
+
+function pen(upOrDown) {
+	robotPath.push({type:"pen", down: upOrDown, pin: robotPenPin});
+}
+
+function moveRobot(dist,angle){
+	robotPath.push({type:"rotate", angle: angle});
+	if (dist > 0) {
+		robotPath.push({type:"moveto", count: dist / robotScale});
+	}
+}
+
+function sendPathToRobot() {
+	console.log(robotPath);
+	
+// 	motorFollowPath(1, 50, robotPath);
+}
 
 // Set-up the canvas and add our event handlers after the page has loaded
 function init() {
