@@ -1,0 +1,57 @@
+<html>
+	<head>
+		<title>RobotSketch</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" /> 
+		<meta name="author" content="Adam, Josh & Paolo" /> 
+		<script src="browser_rpc_service.js"></script>
+		<script type="text/javascript" src="sketch.js"></script>
+		<style>
+/* Some CSS styling */
+#sketchpadapp {
+    /* Prevent nearby text being highlighted when accidentally dragging mouse outside confines of the canvas */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.leftside {
+    float:left;
+    width:220px;
+    height:285px;
+    background-color:#def;
+    padding:10px;
+    border-radius:4px;
+}
+.rightside {
+    float:left;
+    margin-left:10px;
+}
+#sketchpad {
+    float:left;
+    border:2px solid #888;
+    border-radius:4px;
+    position:relative; /* Necessary for correct mouse co-ords in Firefox */
+}
+</style>
+	</head>
+
+	<body onload="init()">
+		<div id="sketchpadapp">
+			<div class="leftside">
+				 Simple mouse-based HTML5 canvas sketchpad.<br/><br/>
+				 Draw something by holding down the mouse button or using single clicks.<br/><br/>
+				 On a touchscreen, tapping the area will register as a single mouse click.<br/><br/>
+
+				 <p><input type="submit" value="Clear Sketchpad" onclick="clearCanvas(canvas,ctx);"></p>
+				 <p><input type="submit" value="Send" onclick="clearCanvas(canvas,ctx);"></p>
+			</div>
+			<div class="rightside">
+				<canvas id="sketchpad" height="300" width="400">
+				</canvas>
+			</div>
+		</div>
+	</body>
+</html>

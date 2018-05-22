@@ -21,11 +21,13 @@ function clearCanvas() {
 	context.beginPath();
 	context.moveTo(-halfW,0);
 	context.lineTo(halfW,0);
+	context.closePath();
 	context.stroke();
 
 	context.beginPath();
 	context.moveTo(0,-halfH);
 	context.lineTo(0,halfH);
+	context.closePath();
 	context.stroke();
 
 	context.lineWidth = 7;
@@ -54,6 +56,7 @@ function printDot(thix,thiy,tcolor,tsize) {
 
 	context.beginPath();
 	context.rect(myx, myy, tsize, tsize);
+	context.closePath();
 	context.fillStyle = tcolor;
 	context.fill();
 }
