@@ -3,6 +3,7 @@ load('api_math.js');
 load('api_gpio.js');
 load('api_sys.js');
 load('api_rpc.js');
+load("api_file.js");
 load('api_pwm.js');
 load('api_timer.js');
 load('queue.js');
@@ -20,6 +21,7 @@ let motors = MotorDriver.create(motorAddress, 100);
 
 let LEFT_PHOTO = 16;
 let RIGHT_PHOTO = 17;
+let FILE_RECALL = 18;
 
 MotorDriver.enableCounter(motors,LEFT_PHOTO);
 
@@ -99,20 +101,24 @@ RPC.addHandler('Robot.RotateBy', function(args) {
   }
 });
 
-RPC.addHandler('Robot.Stop', function(args) {
+function stopMotors() {
   motors.speed = 0;
   
   while (!queue.isEmpty()) {
     queue.remove();
   }
-  return {success: MotorDriver.stop(motors)};
+  return MotorDriver.stop(motors);
+}
+
+RPC.addHandler('Robot.Stop', function(args) {
+  return {success: stopMotors()};
 });
 
 RPC.addHandler('Robot.isMoving', function(args) {
   return { result: motors.isMoving };
 });
 
-RPC.addHandler('Robot.Path', function(args) {
+function parsePathCommand(args) {
   let dir = args.dir;
   let speed = args.speed;
   let ii;
@@ -140,6 +146,13 @@ RPC.addHandler('Robot.Path', function(args) {
       });
     }
   }
+}
+
+RPC.addHandler('Robot.Path', function(args) {
+  parsePathCommand(args);
+  
+  // Save it for offline demo, in case
+  File.write(JSON.stringify(args), 'path.json');
   
   return { success: true };
 });
@@ -172,6 +185,22 @@ RPC.addHandler('Servo.Set', function(args) {
     return {error: -1, message: 'Bad request. Expected: {"pin": num,"angle":N}'};
   }
 });
+
+// In case of manual activation, recall JSON from file system, and execute it
+GPIO.set_button_handler(FILE_RECALL, GPIO.PULL_UP, GPIO.INT_EDGE_NEG, 200, function() {
+  if (motors.isMoving) {
+    stopMotors();
+  }
+  
+  // Don't start immediately, wait 1 sec so the robot is stable
+  Sys.usleep(1000000);
+  
+  let path = JSON.parse(File.read('path.json'));
+  
+  if (path !== null) {
+    parsePathCommand(path);
+  }
+}, null);
 
 // Button is wired to GPIO pin 0
 // When brought to 0, it resets WiFi to AP

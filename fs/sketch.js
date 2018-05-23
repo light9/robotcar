@@ -1,7 +1,11 @@
+// We save the points' sequences in an array: each item of the array is a path
+var pathArray = [];
+// This stores the points from mouse down until mouse up
+var currentPath = [];
 
 var robotPenPin = 4;
 var robotPath = [];
-var robotScale = 1.0;
+var robotScale = 3.0;
 
 // Variables for referencing the canvas and 2dcanvas context
 var canvas,ctx;
@@ -34,6 +38,7 @@ function drawDot(ctx,x,y,size) {
 		ctx.closePath();
 		ctx.stroke();
 	}
+	currentPath.push({x:x, y: canvas.height - y});
 	
 	prevMouseX = x;
 	prevMouseY = y;
@@ -43,6 +48,7 @@ function drawDot(ctx,x,y,size) {
 function clearCanvas(canvas,ctx) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
+	pathArray = [];
 	prevMouseX = -1, prevMouseY = -1, prevAngle = 0;
 	
 //	robotScale = document.getElementById("scale").value;
@@ -52,12 +58,19 @@ function clearCanvas(canvas,ctx) {
 // Keep track of the mouse button being pressed and draw a dot at current location
 function sketchpad_mouseDown() {
 	mouseDown=1;
+	currentPath = [];
 	drawDot(ctx,mouseX,mouseY,2);
 }
 
 // Keep track of the mouse button being released
 function sketchpad_mouseUp() {
 	mouseDown=0;
+	
+	if (currentPath.length > 0) {
+		pathArray.push(currentPath);
+	}
+	currentPath = [];
+	
 	prevMouseX = -1, prevMouseY = -1;
 }
 
@@ -114,6 +127,12 @@ function pen(upOrDown) {
 }
 
 function moveRobot(dist,angle){
+	if (angle < -180) {
+		angle += 360;
+	} else if (angle > 180) {
+		angle -= 360;
+	}
+	
 	robotPath.push({type:"rotate", angle: Math.round(angle)});
 	if (dist > 0) {
 		robotPath.push({type:"moveto", count: Math.round(dist / robotScale)});
@@ -121,9 +140,75 @@ function moveRobot(dist,angle){
 }
 
 function sendPathToRobot() {
-	console.log(robotPath);
+// 	console.log(robotPath);
 	
-// 	motorFollowPath(1, 50, robotPath);
+	motorFollowPath(1, 50, robotPath);
+}
+
+function buildRobotPath() {
+	var dist = 0;
+	var angle = 0;
+	var prevX = 0;
+	var prevY = 0;
+	var x = 0;
+	var y = 0;
+	var prevAngle = 0;
+	var moveAngle = 0;
+	var absoluteAngle = 0;
+	var penDown = false;
+	var ii = 0;
+	var jj = 0;
+	
+	if (pathArray.length === 0) {
+		return;
+	}
+	
+	// Ensure pen is up
+	pen(false);
+	
+	for (ii = 0; ii < pathArray.length; ii++) {
+		var aPath = pathArray[ii];
+		
+		for (jj = 0; jj < aPath.length; jj++) {
+			var aPoint =  aPath[jj];
+			
+			x = aPoint.x;
+			y = aPoint.y;
+			
+			dist = getDistance(x,y,prevX,prevY);
+			absoluteAngle = getAngle(x,y,prevX,prevY);
+			moveAngle = absoluteAngle - prevAngle;
+			
+			moveRobot(dist,moveAngle);
+			
+			prevAngle = absoluteAngle;
+			prevX = x;
+			prevY = y;
+			
+			// Arrived at destination, ensure pen is down
+			if (!penDown) {
+				pen(true);
+				penDown = true;
+			}
+		}
+		// Raise pen while moving to next path
+		pen(false);
+		penDown = false;
+	}
+	
+	// Take car back to zero
+	x = 0;
+	y = 0;
+	dist = getDistance(x,y,prevX,prevY);
+	absoluteAngle = getAngle(x,y,prevX,prevY);
+	moveAngle = absoluteAngle - prevAngle;
+	
+	moveRobot(dist,moveAngle);
+	
+	// Resets orientation
+	moveRobot(0, -absoluteAngle);
+	
+	sendPathToRobot();
 }
 
 // Set-up the canvas and add our event handlers after the page has loaded

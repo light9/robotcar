@@ -124,7 +124,7 @@ function generate(){
 	var prevAngle = 0;
 	var moveAngle = 0;
 	var absoluteAngle = 0;
-	var penUp = false;
+	var penDown = false;
 	
 	initialise();
 	
@@ -152,9 +152,9 @@ function generate(){
 			prevY = y;
 			
 			// Arrived at destination, ensure pen is down
-			if (!penUp) {
+			if (!penDown) {
 				pen(true);
-				penUp = true;
+				penDown = true;
 			}
 		}
 		
@@ -184,6 +184,13 @@ function pen(upOrDown) {
 }
 
 function moveRobot(dist,angle){
+	// Ensures angle is the minimum it could be
+	if (angle < -180) {
+		angle += 360;
+	} else if (angle > 180) {
+		angle -= 360;
+	}
+	
 	robotPath.push({type:"rotate", angle: Math.round(angle)});
 	if (dist > 0) {
 		robotPath.push({type:"moveto", count: Math.round(dist / robotScale)});
