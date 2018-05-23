@@ -198,9 +198,9 @@ function moveRobot(dist,angle){
 }
 
 function sendPathToRobot() {
-	console.log(robotPath);
+// 	console.log(robotPath);
 	
-// 	motorFollowPath(1, 50, robotPath);
+	motorFollowPath(1, 50, robotPath);
 }
 
 function rangeCheck() {

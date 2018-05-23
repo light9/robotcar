@@ -21,7 +21,7 @@ let motors = MotorDriver.create(motorAddress, 100);
 
 let LEFT_PHOTO = 16;
 let RIGHT_PHOTO = 17;
-let FILE_RECALL = 18;
+let FILE_RECALL = 27;
 
 MotorDriver.enableCounter(motors,LEFT_PHOTO);
 
@@ -49,7 +49,7 @@ function interpretCommand(command) {
 }
 
 // Call every 250 msecs, check queue and send command if not empty and motor stopped
-Timer.set(250, Timer.REPEAT, function() {
+Timer.set(100, Timer.REPEAT, function() {
   if (!motors.isMoving) {
     if (!queue.isEmpty()) {
       interpretCommand(queue.first());
