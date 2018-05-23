@@ -26,11 +26,13 @@ let DRVDrive = {
     result.rotation = 0.0;
     result.dirA = 0;
     result.dirB = 0;
-   
-    PWM.set(initialPin, freq, 0);
-    PWM.set(initialPin + 1, freq, 0);
-    PWM.set(initialPin + 2, freq, 0);
-    PWM.set(initialPin + 3, freq, 0);
+    result.compensate = false;
+    
+    // Keeps motors in SHORT_BRAKE mode
+    PWM.set(initialPin, freq, 1);
+    PWM.set(initialPin + 1, freq, 1);
+    PWM.set(initialPin + 2, freq, 1);
+    PWM.set(initialPin + 3, freq, 1);
     
     return result;
   },
@@ -64,9 +66,15 @@ let DRVDrive = {
       PWM.set(handle.address + 1, handle.frequency, pwm);
       PWM.set(handle.address + 2, handle.frequency, 0);
       PWM.set(handle.address + 3, handle.frequency, pwm + handle.speedDiff);
+    } else if (dir === this.SHORT_BRAKE) {
+      // Try driver chip's own Short Brake
+      PWM.set(handle.address, handle.frequency, 1.0);
+      PWM.set(handle.address + 1, handle.frequency, 1.0);
+      PWM.set(handle.address + 2, handle.frequency, 1.0);
+      PWM.set(handle.address + 3, handle.frequency, 1.0);
     } else {
+      /* Briefly invert motors to counter inertia
       if (dir === this.SHORT_BRAKE) {
-        // Briefly invert motors to counter inertia
         if (handle.dirA === this.CCW) {
           PWM.set(handle.address, handle.frequency, 0);
           PWM.set(handle.address + 1, handle.frequency, 0.5);
@@ -81,8 +89,9 @@ let DRVDrive = {
           PWM.set(handle.address + 2, handle.frequency, 0.5);
           PWM.set(handle.address + 3, handle.frequency, 0);
         }
-        Sys.usleep(10000);
+        Sys.usleep(20000);
       }
+      */
       PWM.set(handle.address, handle.frequency, 0);
       PWM.set(handle.address + 1, handle.frequency, 0);
       PWM.set(handle.address + 2, handle.frequency, 0);
@@ -158,7 +167,7 @@ let DRVDrive = {
     }
     
     // Calculate speed difference to compensate, every 5 steps
-    if (((handle.countA % 5) === 4) && (Math.abs(handle.speedDiff) < 0.3)) {
+    if (handle.compensate && ((handle.countA % 5) === 4) && (Math.abs(handle.speedDiff) < 0.3)) {
       if (handle.countB > handle.countA + 1) {
         // Slow down B
         handle.speedDiff -= 0.05;
@@ -248,6 +257,7 @@ let DRVDrive = {
     handle.countB = 0;
     handle.speedDiff = 0.0;
     handle.targetCount = count;
+    handle.compensate = true;
     
     if ((callback !== null) && (callback !== undefined)) {
       print("Assigning move stop callback ",callback);
@@ -282,6 +292,7 @@ let DRVDrive = {
     handle.countA = 0;
     handle.countB = 0;
     handle.speedDiff = 0.0;
+    handle.compensate = true;
     handle.targetCount = Math.floor(absRotation / this.DEGREES_PER_STEP);
     
     // Updates rotation with the remainder
