@@ -1,13 +1,24 @@
 <html>
 	<head>
-		<title>RobotSketch</title>
+		<title>Sketch</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" /> 
 		<meta name="author" content="Adam, Josh & Paolo" /> 
 		<script src="browser_rpc_service.js"></script>
-		<script type="text/javascript" src="sketch.js"></script>
+		<script src="equations.js"></script>
+		<script src="robot.js"></script>
+		<script src="sketch.js"></script>
 		<style>
 		/* Some CSS styling */
+			html, body {
+				width: 100%;
+				height: 100%;
+				margin: 10px;
+			}
+			body {
+				background-color: transparent;
+				font-family: Arial, Verdana, Sans-Serif;
+			}
 			#sketchpadapp {
 				/* Prevent nearby text being highlighted when accidentally dragging mouse outside confines of the canvas */
 				-webkit-touch-callout: none;
@@ -17,40 +28,47 @@
 				-ms-user-select: none;
 				user-select: none;
 			}
-			.leftside {
-				float:left;
-				width:220px;
-				height:285px;
-				background-color:#def;
-				padding:10px;
-				border-radius:4px;
-			}
-			.rightside {
-				float:left;
-				margin-left:10px;
-			}
 			#sketchpad {
-				float:left;
 				border:2px solid #888;
 				border-radius:4px;
 				position:relative; /* Necessary for correct mouse co-ords in Firefox */
 			}
+			.titleItem {
+				margin: 8px;
+				padding: 8px;
+				color: white;
+				background-color: #2980b9;
+			}
+			.btn {
+				background: #3498db;
+				background-image: linear-gradient(to bottom, #3498db, #2980b9);
+				border-radius: 8px;
+				box-shadow: 0px 1px 3px #666666;
+				font-family: Arial;
+				color: #ffffff;
+				font-size: 14px;
+				padding: 6px 24px 6px 24px;
+				text-decoration: none;
+			}
+			.btn:hover {
+				background: #3cb0fd;
+				background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+				text-decoration: none;
+			}
 		</style>
 	</head>
-	<body onload="init(); startup()">
+	<body onload="initialise(); startup()">
+		<div class="titleItem">
+			<h1 align="center">Welcome to Robot Car</h1>
+			<h4 align="center">Sketch</h4>
+		</div>
 		<div id="sketchpadapp">
-			<div class="leftside">
-				 Simple mouse-based HTML5 canvas sketchpad.<br/><br/>
-				 Draw something by holding down the mouse button or using single clicks.<br/><br/>
-				 On a touchscreen, tapping the area will register as a single mouse click.<br/><br/>
-
-				 <p><input type="submit" value="Clear Sketchpad" onclick="clearCanvas(canvas,ctx);"></p>
-				 <p><input type="submit" value="Send" onclick="buildRobotPath();"></p>
-			</div>
-			<div class="rightside">
-				<canvas id="sketchpad" height="300" width="400">
-				</canvas>
-			</div>
+			<p><canvas id="sketchpad" height="300" width="400"></canvas></p>
+			<br><br>
+			Robot Scale 1/<input size="5" type="text" value="5" id="scale">
+			<br><br>
+			<button class="btn" onclick="clearCanvas(canvas,ctx)">Clear Sketchpad</button>
+			<button class="btn" onclick="buildRobotPath()">Send To Robot</button>
 		</div>
 	</body>
 </html>

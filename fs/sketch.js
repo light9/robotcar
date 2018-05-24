@@ -3,10 +3,6 @@ var pathArray = [];
 // This stores the points from mouse down until mouse up
 var currentPath = [];
 
-var robotPenPin = 4;
-var robotPath = [];
-var robotScale = 3.0;
-
 // Variables for referencing the canvas and 2dcanvas context
 var canvas,ctx;
 
@@ -49,10 +45,9 @@ function clearCanvas(canvas,ctx) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
 	pathArray = [];
+	currentPath = [];
 	prevMouseX = -1, prevMouseY = -1, prevAngle = 0;
 	
-//	robotScale = document.getElementById("scale").value;
-	robotPath = [];
 }
 
 // Keep track of the mouse button being pressed and draw a dot at current location
@@ -101,50 +96,6 @@ function getMousePos(e) {
 	}
 }
 
-function getDistance(x1,y1,x2,y2) {
-	var dist = 0;
-	
-	dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-	
-	return dist;
-}
-
-function getAngle(x1,y1,x2,y2) {
-	var angle = 0;
-	var xDist = x1 - x2;
-	var yDist = y1 - y2;
-	
-	// NOTE: According to https://www.w3schools.com/jsref/jsref_atan2.asp
-	// Y comes _first_
-	angle = Math.atan2(yDist, xDist);
-	angle *= 180 / Math.PI;
-	
-	return angle;	
-}
-
-function pen(upOrDown) {
-	robotPath.push({type:"pen", down: upOrDown, pin: robotPenPin});
-}
-
-function moveRobot(dist,angle){
-	if (angle < -180) {
-		angle += 360;
-	} else if (angle > 180) {
-		angle -= 360;
-	}
-	
-	robotPath.push({type:"rotate", angle: Math.round(angle)});
-	if (dist > 0) {
-		robotPath.push({type:"moveto", count: Math.round(dist / robotScale)});
-	}
-}
-
-function sendPathToRobot() {
-// 	console.log(robotPath);
-	
-	motorFollowPath(1, 50, robotPath);
-}
-
 function buildRobotPath() {
 	var dist = 0;
 	var angle = 0;
@@ -162,6 +113,8 @@ function buildRobotPath() {
 	if (pathArray.length === 0) {
 		return;
 	}
+	
+	initRobot(document.getElementById("scale").value);
 	
 	// Ensure pen is up
 	pen(false);
@@ -212,7 +165,7 @@ function buildRobotPath() {
 }
 
 // Set-up the canvas and add our event handlers after the page has loaded
-function init() {
+function initialise() {
 	// Get the specific canvas element from the HTML document
 	canvas = document.getElementById('sketchpad');
 
